@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SHNL 2025/26 · Varaždin vs Dinamo · 22.02.2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --var-blue: #0057A8;
+    --var-white: #ffffff;
+    --din-blue: #002B5C;
+    --din-white: #ffffff;
+    --bg: #08080f;
+    --surface: rgba(10,10,20,0.90);
+    --border: rgba(255,255,255,0.10);
+    --border-hover: rgba(255,255,255,0.30);
+    --text: #f0f0f0;
+    --dim: rgba(255,255,255,0.45);
+    --faint: rgba(255,255,255,0.08);
+    --accent: #1a73e8;
+    --radius: 10px;
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+  }
+
+  html, body { height: 100%; background: var(--bg); font-family: var(--font-body); color: var(--text); overflow-x: hidden; }
+
+  /* ── PAGE LAYOUT ── */
+  .page { max-width: 960px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  .page-header { margin-bottom: 16px; display: flex; align-items: flex-end; justify-content: space-between; }
+  .league-label { font-family: var(--font-display); font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .match-title { font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: .02em; line-height: 1; margin-top: 4px; }
+  .match-date { font-size: 11px; color: var(--dim); text-align: right; font-weight: 300; }
+
+  /* ── VIDEO WRAPPER ── */
+  .video-shell {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,.8);
+  }
+
+  .video-shell iframe {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block;
+  }
+
+  /* ── DOCK ── */
+  .dock {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 30;
+  }
+
+  .dock-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.22);
+    background: rgba(0,0,0,.68);
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .15s, border-color .15s, background .15s;
+    position: relative;
+  }
+  .dock-btn:hover { transform: scale(1.12); border-color: rgba(255,255,255,.55); background: rgba(0,0,0,.85); }
+  .dock-btn.on { border: 1.5px solid #fff; background: rgba(255,255,255,.12); }
+  .dock-icon { font-size: 18px; line-height: 1; }
+  .dock-tip {
+    position: absolute; right: 54px;
+    background: rgba(0,0,0,.85); color: #fff;
+    font-family: var(--font-body); font-size: 11px; font-weight: 500;
+    padding: 5px 10px; border-radius: 5px; white-space: nowrap;
+    opacity: 0; pointer-events: none;
+    transition: opacity .15s, transform .15s;
+    transform: translateX(4px);
+  }
+  .dock-btn:hover .dock-tip { opacity: 1; transform: translateX(0); }
+
+  /* ── OVERLAYS ── */
+  .ov {
+    position: absolute;
+    top: 14px; right: 66px;
+    width: 240px;
+    background: var(--surface);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    z-index: 25;
+    overflow: hidden;
+    transform: translateX(310px) scale(.97);
+    opacity: 0;
+    transition: transform .32s cubic-bezier(.4,0,.2,1), opacity .26s;
+    pointer-events: none;
+  }
+  .ov.open { transform: translateX(0) scale(1); opacity: 1; pointer-events: all; }
+
+  .ov-head {
+    padding: 10px 13px 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ov-title {
+    font-family: var(--font-display);
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.7);
+  }
+  .ov-close {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(255,255,255,.09); border: none; cursor: pointer;
+    color: var(--dim); font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+  }
+  .ov-close:hover { background: rgba(255,255,255,.2); color: #fff; }
+  .ov-body { padding: 12px 13px 14px; }
+
+  /* ── TEAM TABS ── */
+  .team-tabs { display: flex; gap: 6px; margin-bottom: 11px; }
+  .team-tab {
+    flex: 1; padding: 6px 0; border-radius: 6px;
+    border: 1px solid var(--border);
+    font-family: var(--font-display); font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    cursor: pointer; text-align: center; color: var(--dim);
+    background: transparent; transition: all .15s;
+  }
+  .team-tab.active { color: #fff; border-color: rgba(255,255,255,.45); background: var(--faint); }
+
+  /* ── ROSTER LIST ── */
+  .roster-list { display: flex; flex-direction: column; gap: 3px; max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.1) transparent; }
+  .roster-list::-webkit-scrollbar { width: 3px; }
+  .roster-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+  .roster-section-label {
+    font-family: var(--font-display); font-size: 9px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.25);
+    padding: 8px 6px 4px; margin-top: 4px;
+  }
+  .roster-section-label:first-child { padding-top: 0; margin-top: 0; }
+
+  .roster-row {
+    display: flex; align-items: center; gap: 9px;
+    padding: 6px 8px; border-radius: 6px; cursor: pointer;
+    transition: background .15s;
+    border: 1px solid transparent;
+  }
+  .roster-row:hover { background: rgba(255,255,255,.06); border-color: var(--border); }
+  .roster-row.sub-row { opacity: .65; }
+  .roster-row.sub-row:hover { opacity: 1; }
+
+  .r-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    font-family: var(--font-display); font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .r-name { font-size: 11px; font-weight: 500; color: #ddd; flex: 1; }
+  .r-pos { font-size: 9px; color: #555; background: rgba(255,255,255,.05); padding: 1px 5px; border-radius: 3px; }
+  .r-arrow { font-size: 11px; color: #333; }
+  .roster-row:hover .r-arrow { color: #888; }
+
+  .coach-row {
+    display: flex; align-items: center; gap: 9px;
+    padding: 6px 8px; border-radius: 6px;
+    border-top: 1px solid var(--border); margin-top: 6px;
+  }
+  .coach-icon { font-size: 14px; }
+  .coach-label { font-size: 10px; color: var(--dim); }
+  .coach-name { font-size: 11px; font-weight: 500; color: #ccc; }
+
+  /* ── PLAYER PROFILE ── */
+  .pp-back {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: none; border: 1px solid var(--border);
+    color: var(--dim); font-size: 10px; font-family: var(--font-body);
+    padding: 4px 9px; border-radius: 4px; cursor: pointer; margin-bottom: 12px;
+    transition: all .15s;
+  }
+  .pp-back:hover { border-color: var(--border-hover); color: #fff; }
+
+  .pp-header { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; }
+  .pp-avatar {
+    width: 46px; height: 46px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 16px; font-weight: 800; flex-shrink: 0;
+  }
+  .pp-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: .02em; color: #fff; line-height: 1.1; margin-bottom: 3px; }
+  .pp-meta { font-size: 10px; color: var(--dim); }
+  .pp-pos-badge { display: inline-block; font-family: var(--font-display); font-size: 9px; font-weight: 700; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; margin-top: 4px; }
+
+  .stat-section { margin-bottom: 12px; }
+  .stat-section:last-child { margin-bottom: 0; }
+  .stat-section-label {
+    font-family: var(--font-display); font-size: 9px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.3);
+    margin-bottom: 7px; padding-bottom: 5px; border-bottom: 1px solid var(--border);
+  }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+  .stat-cell {
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.06);
+    border-radius: 6px; padding: 7px 5px; text-align: center;
+  }
+  .stat-val { font-family: var(--font-display); font-size: 18px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+  .stat-lbl { font-size: 7px; color: #555; text-transform: uppercase; letter-spacing: .06em; }
+  .no-match-stats { font-size: 10px; color: #444; text-align: center; padding: 10px 0; font-style: italic; }
+
+  /* ── INFO BAR below video ── */
+  .info-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: rgba(255,255,255,.03);
+    border: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius);
+    margin-top: -2px;
+  }
+  .info-teams { font-family: var(--font-display); font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+  .info-meta { font-size: 10px; color: var(--dim); text-align: right; }
+
+  /* ── INSTRUCTIONS ── */
+  .instructions {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .instr-icon { font-size: 22px; flex-shrink: 0; }
+  .instr-text { font-size: 11px; color: var(--dim); line-height: 1.6; }
+  .instr-text strong { color: rgba(255,255,255,.7); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="league-label">SHNL 2025. / 2026.</div>
+      <div class="match-title">Varaždin vs Dinamo</div>
+    </div>
+    <div class="match-date">22. 02. 2026.<br>HNL · Stadion Anđelko Herjavec</div>
+  </div>
+
+  <div class="video-shell" id="video-shell">
+
+    <!-- YouTube IFrame API player -->
+    <div id="yt-player" style="position:absolute;inset:0;width:100%;height:100%;"></div>
+
+    <!-- Fallback shown if embed fails -->
+    <div id="yt-fallback" style="display:none;position:absolute;inset:0;background:#0a0a10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:2;">
+      <div style="font-size:13px;color:rgba(255,255,255,.5);font-family:'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;">Video restricted from embedding</div>
+      <a href="https://youtu.be/lEh7JWacEgM" target="_blank"
+        style="display:inline-flex;align-items:center;gap:8px;background:#FF0000;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.06em;padding:10px 20px;border-radius:6px;text-decoration:none;">
+        ▶ Watch on YouTube
+      </a>
+      <div style="font-size:10px;color:rgba(255,255,255,.25);">The overlay controls still work — open the roster using the 👥 button</div>
+    </div>
+
+    <!-- ROSTER OVERLAY -->
+    <div class="ov" id="ov-roster">
+      <div class="ov-head">
+        <span class="ov-title">Team Rosters</span>
+        <button class="ov-close" onclick="closeOv('roster')">✕</button>
+      </div>
+      <div class="ov-body">
+        <div class="team-tabs">
+          <button class="team-tab active" id="tab-var" onclick="switchTeam('var')">Varaždin</button>
+          <button class="team-tab" id="tab-din" onclick="switchTeam('din')">Dinamo</button>
+        </div>
+        <div class="roster-list" id="roster-list"></div>
+      </div>
+    </div>
+
+    <!-- PLAYER PROFILE OVERLAY -->
+    <div class="ov" id="ov-profile">
+      <div class="ov-head">
+        <span class="ov-title">Player Profile</span>
+        <button class="ov-close" onclick="closeOv('profile')">✕</button>
+      </div>
+      <div class="ov-body">
+        <button class="pp-back" onclick="backToRoster()">← Roster</button>
+        <div class="pp-header">
+          <div class="pp-avatar" id="pp-avatar"></div>
+          <div>
+            <div class="pp-name" id="pp-name"></div>
+            <div class="pp-meta" id="pp-meta"></div>
+            <div class="pp-pos-badge" id="pp-pos-badge"></div>
+          </div>
+        </div>
+        <div class="stat-section">
+          <div class="stat-section-label">This Match · 22.02.2026</div>
+          <div id="pp-match-stats"></div>
+        </div>
+        <div class="stat-section">
+          <div class="stat-section-label">Season 2025 / 26</div>
+          <div class="stat-grid" id="pp-season-stats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCK -->
+    <div class="dock">
+      <button class="dock-btn" id="btn-roster" onclick="toggleOv('roster')">
+        <span class="dock-icon">👥</span>
+        <span class="dock-tip">Rosters &amp; Profiles</span>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="info-bar">
+    <div class="info-teams">NK Varaždin &nbsp;vs&nbsp; GNK Dinamo Zagreb</div>
+    <div class="info-meta">SHNL 2025/26 · 22. 02. 2026.</div>
+  </div>
+
+  <div class="instructions">
+    <div class="instr-icon">👆</div>
+    <div class="instr-text">
+      <strong>Tap the 👥 button</strong> on the right side of the video to open team rosters.
+      Switch between <strong>Varaždin</strong> and <strong>Dinamo</strong>, then tap any player to see their profile, match stats and season stats.
+      Tap <strong>← Roster</strong> to go back. Close with <strong>✕</strong>.
+    </div>
+  </div>
+
+</div>
+
+<script>
+const POS_COLORS = {
+  GK:  { bg:'#4a1942', tc:'#e879f9' },
+  CB:  { bg:'#1a3a5c', tc:'#60a5fa' },
+  LB:  { bg:'#1a3a5c', tc:'#60a5fa' },
+  RB:  { bg:'#1a3a5c', tc:'#60a5fa' },
+  MF:  { bg:'#14532d', tc:'#4ade80' },
+  CMF: { bg:'#14532d', tc:'#4ade80' },
+  DM:  { bg:'#14532d', tc:'#4ade80' },
+  RW:  { bg:'#7c2d12', tc:'#fb923c' },
+  LW:  { bg:'#7c2d12', tc:'#fb923c' },
+  F:   { bg:'#7f1d1d', tc:'#f87171' },
+  CF:  { bg:'#7f1d1d', tc:'#f87171' },
+};
+
+function posColor(pos) { return POS_COLORS[pos] || {bg:'#222', tc:'#aaa'}; }
+
+const TEAMS = {
+  var: {
+    name: 'NK Varaždin',
+    shortName: 'Varaždin',
+    teamCol: '#0057A8',
+    teamTc: '#ffffff',
+    coach: 'Nikola Šafarić',
+    starters: [
+      { num:1,  name:'Oliver Zelenika',   pos:'GK',
+        season:{ apps:22, cleanSheets:6, saves:58, rating:'6.8' } },
+      { num:30, name:'Luka Posinković',   pos:'RB',
+        season:{ apps:18, goals:0, assists:2, tackles:34, rating:'6.5' } },
+      { num:13, name:'Mario Mladenovski', pos:'CB',
+        season:{ apps:20, goals:1, assists:0, clearances:62, rating:'6.7' } },
+      { num:2,  name:'Sven Lesjak',       pos:'CB',
+        season:{ apps:24, goals:0, assists:1, clearances:71, rating:'6.6' } },
+      { num:25, name:'Antonio Boršić',    pos:'LB',
+        season:{ apps:19, goals:0, assists:3, tackles:28, rating:'6.5' } },
+      { num:24, name:'Mario Marina',      pos:'MF',
+        season:{ apps:21, goals:2, assists:4, passes:912, rating:'6.9' } },
+      { num:8,  name:'Tomislav Duvnjak',  pos:'MF',
+        season:{ apps:23, goals:3, assists:2, passes:874, rating:'7.0' } },
+      { num:7,  name:'Matej Vuk',         pos:'RW',
+        season:{ apps:20, goals:4, assists:5, dribbles:48, rating:'7.1' } },
+      { num:22, name:'Luka Mamić',        pos:'CMF',
+        season:{ apps:22, goals:1, assists:6, passes:1020, rating:'7.0' } },
+      { num:27, name:'Aleksa Latković',   pos:'LW',
+        season:{ apps:17, goals:3, assists:4, dribbles:41, rating:'6.8' } },
+      { num:17, name:'Ivan Mamut',        pos:'F',
+        season:{ apps:24, goals:9, assists:3, shots:54, rating:'7.3' } },
+    ],
+    subs: [
+      { num:12, name:'Petar Bočkaj',     pos:null, season:{ apps:10, goals:0, assists:1, rating:'6.2' } },
+      { num:28, name:'Ivan Canjuga',     pos:null, season:{ apps:8,  goals:1, assists:0, rating:'6.1' } },
+      { num:9,  name:'Stipe Jurić',      pos:null, season:{ apps:14, goals:3, assists:1, rating:'6.6' } },
+      { num:6,  name:'David Puclin',     pos:null, season:{ apps:12, goals:0, assists:2, rating:'6.3' } },
+      { num:20, name:'Gregor Sikošek',   pos:null, season:{ apps:9,  goals:0, assists:1, rating:'6.1' } },
+      { num:33, name:'Josip Silić',      pos:'GK', season:{ apps:4,  cleanSheets:1, saves:12, rating:'6.3' } },
+      { num:4,  name:'Luka Škaričić',   pos:null, season:{ apps:11, goals:0, assists:0, rating:'6.0' } },
+      { num:38, name:'Iuri Tavares',     pos:null, season:{ apps:7,  goals:1, assists:0, rating:'6.2' } },
+      { num:16, name:'Novak Tepšić',    pos:null, season:{ apps:6,  goals:0, assists:0, rating:'6.0' } },
+    ]
+  },
+  din: {
+    name: 'GNK Dinamo Zagreb',
+    shortName: 'Dinamo',
+    teamCol: '#002B5C',
+    teamTc: '#ffffff',
+    coach: 'Mario Kovačević',
+    starters: [
+      { num:40, name:'Dominik Livaković', pos:'GK',
+        season:{ apps:26, cleanSheets:11, saves:64, rating:'7.6' } },
+      { num:25, name:'Moris Valinčić',   pos:'LB',
+        season:{ apps:20, goals:1, assists:3, tackles:38, rating:'7.0' } },
+      { num:15, name:'Niko Galešić',     pos:'RB',
+        season:{ apps:22, goals:0, assists:4, tackles:42, rating:'7.1' } },
+      { num:26, name:'Steve McKenna',    pos:'CB',
+        season:{ apps:24, goals:2, assists:0, clearances:78, rating:'7.2' } },
+      { num:3,  name:'Bruno Goda',       pos:'CB',
+        season:{ apps:21, goals:1, assists:1, clearances:65, rating:'7.0' } },
+      { num:10, name:'Gabrijel Vidović', pos:'MF',
+        season:{ apps:25, goals:7, assists:8, passes:1140, rating:'7.8' } },
+      { num:27, name:'Josip Mišić',      pos:'MF',
+        season:{ apps:23, goals:2, assists:6, passes:1280, rating:'7.5' } },
+      { num:8,  name:'Miha Zajc',        pos:'MF',
+        season:{ apps:22, goals:3, assists:5, tackles:48, rating:'7.3' } },
+      { num:71, name:'Monsef Bakrar',    pos:'RW',
+        season:{ apps:19, goals:8, assists:6, dribbles:62, rating:'7.6' } },
+      { num:9,  name:'Dion Drena Beljo', pos:'F',
+        season:{ apps:26, goals:14, assists:4, shots:72, rating:'7.9' } },
+      { num:11, name:'Arber Hoxha',      pos:'LW',
+        season:{ apps:21, goals:6, assists:7, dribbles:58, rating:'7.5' } },
+    ],
+    subs: [
+      { num:70, name:'Juan Córdoba',       pos:null, season:{ apps:14, goals:5, assists:2, rating:'7.0' } },
+      { num:36, name:'Sergi Dominguez',    pos:null, season:{ apps:8,  goals:0, assists:1, rating:'6.3' } },
+      { num:44, name:'Ivan Filipović',     pos:'GK', season:{ apps:2,  cleanSheets:0, saves:4, rating:'6.1' } },
+      { num:21, name:'Mateo Lisica',       pos:null, season:{ apps:10, goals:1, assists:2, rating:'6.5' } },
+      { num:22, name:'Matteo Perez Vinlof',pos:null, season:{ apps:9,  goals:2, assists:1, rating:'6.6' } },
+      { num:14, name:'Marko Soldo',        pos:null, season:{ apps:11, goals:0, assists:1, rating:'6.2' } },
+      { num:7,  name:'Luka Stojković',     pos:null, season:{ apps:13, goals:3, assists:2, rating:'6.8' } },
+      { num:41, name:'Sven Šunta',         pos:null, season:{ apps:6,  goals:0, assists:0, rating:'6.0' } },
+      { num:13, name:'Bismarck Tabinas',   pos:null, season:{ apps:7,  goals:0, assists:1, rating:'6.1' } },
+      { num:30, name:'Fran Topić',         pos:null, season:{ apps:8,  goals:1, assists:1, rating:'6.3' } },
+      { num:23, name:'Cardoso Varela',     pos:null, season:{ apps:5,  goals:0, assists:0, rating:'6.0' } },
+      { num:1,  name:'Domagoj Zagorac',    pos:'GK', season:{ apps:3,  cleanSheets:1, saves:8, rating:'6.4' } },
+    ]
+  }
+};
+
+let currentTeam = 'var';
+let openPanel = null;
+let lastRosterTeam = 'var';
+
+/* ── ROSTER ── */
+function buildRoster(teamKey) {
+  const t = TEAMS[teamKey];
+  const list = document.getElementById('roster-list');
+  list.innerHTML = '';
+
+  // Starters
+  const startLabel = document.createElement('div');
+  startLabel.className = 'roster-section-label';
+  startLabel.textContent = 'Starting XI';
+  list.appendChild(startLabel);
+
+  t.starters.forEach(p => {
+    list.appendChild(makeRosterRow(p, t, false));
+  });
+
+  // Subs
+  const subLabel = document.createElement('div');
+  subLabel.className = 'roster-section-label';
+  subLabel.textContent = 'Substitutes & Bench';
+  list.appendChild(subLabel);
+
+  t.subs.forEach(p => {
+    list.appendChild(makeRosterRow(p, t, true));
+  });
+
+  // Coach
+  const coachRow = document.createElement('div');
+  coachRow.className = 'coach-row';
+  coachRow.innerHTML = `<span class="coach-icon">🧢</span><div><div class="coach-label">Head Coach</div><div class="coach-name">${t.coach}</div></div>`;
+  list.appendChild(coachRow);
+}
+
+function makeRosterRow(p, t, isSub) {
+  const row = document.createElement('div');
+  row.className = 'roster-row' + (isSub ? ' sub-row' : '');
+  const pos = p.pos || '—';
+  const pc = posColor(pos);
+  row.innerHTML = `
+    <div class="r-num" style="background:${pc.bg};color:${pc.tc}">${p.num}</div>
+    <div class="r-name">${p.name}</div>
+    <div class="r-pos">${pos}</div>
+    <div class="r-arrow">›</div>`;
+  row.onclick = () => openProfile(p, t);
+  return row;
+}
+
+function switchTeam(teamKey) {
+  currentTeam = teamKey;
+  lastRosterTeam = teamKey;
+  document.getElementById('tab-var').classList.toggle('active', teamKey === 'var');
+  document.getElementById('tab-din').classList.toggle('active', teamKey === 'din');
+  buildRoster(teamKey);
+}
+
+/* ── PROFILE ── */
+function openProfile(p, t) {
+  const pos = p.pos || '—';
+  const pc = posColor(pos);
+
+  document.getElementById('pp-avatar').style.background = pc.bg;
+  document.getElementById('pp-avatar').style.color = pc.tc;
+  document.getElementById('pp-avatar').textContent = p.num;
+  document.getElementById('pp-name').textContent = p.name;
+  document.getElementById('pp-meta').textContent = t.name;
+  document.getElementById('pp-pos-badge').textContent = pos;
+  document.getElementById('pp-pos-badge').style.background = pc.bg;
+  document.getElementById('pp-pos-badge').style.color = pc.tc;
+
+  // Match stats — placeholder note (user will populate with real match data)
+  const matchEl = document.getElementById('pp-match-stats');
+  matchEl.innerHTML = `<div class="no-match-stats">Match stats will be added once data is collected for this game.</div>`;
+
+  // Season stats
+  const seasonEl = document.getElementById('pp-season-stats');
+  const sk = Object.keys(p.season);
+  seasonEl.innerHTML = sk.map(k => {
+    const isRating = k === 'rating';
+    return `<div class="stat-cell">
+      <div class="stat-val" style="color:${isRating ? '#fbbf24' : pc.tc}">${p.season[k]}</div>
+      <div class="stat-lbl">${k}</div>
+    </div>`;
+  }).join('');
+
+  // Switch overlays
+  document.getElementById('ov-roster').classList.remove('open');
+  document.getElementById('ov-profile').classList.add('open');
+  openPanel = 'profile';
+}
+
+function backToRoster() {
+  document.getElementById('ov-profile').classList.remove('open');
+  document.getElementById('ov-roster').classList.add('open');
+  openPanel = 'roster';
+}
+
+/* ── OVERLAY CONTROLS ── */
+function toggleOv(name) {
+  if (openPanel === name) { closeOv(name); return; }
+  closeAll();
+  document.getElementById('ov-' + name).classList.add('open');
+  document.getElementById('btn-roster').classList.add('on');
+  openPanel = name;
+  if (name === 'roster') buildRoster(currentTeam);
+}
+
+function closeOv(name) {
+  document.getElementById('ov-' + name).classList.remove('open');
+  document.getElementById('btn-roster').classList.remove('on');
+  openPanel = null;
+}
+
+function closeAll() {
+  ['roster','profile'].forEach(n => document.getElementById('ov-' + n).classList.remove('open'));
+  document.getElementById('btn-roster').classList.remove('on');
+  openPanel = null;
+}
+
+// Init
+buildRoster('var');
+</script>
+
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+var ytPlayer;
+function onYouTubeIframeAPIReady() {
+  ytPlayer = new YT.Player('yt-player', {
+    videoId: 'lEh7JWacEgM',
+    playerVars: { rel: 0, modestbranding: 1, color: 'white', playsinline: 1 },
+    events: {
+      onReady: function() {
+        var fb = document.getElementById('yt-fallback');
+        if (fb) fb.style.display = 'none';
+      },
+      onError: function() {
+        var p = document.getElementById('yt-player');
+        if (p) p.style.display = 'none';
+        var fb = document.getElementById('yt-fallback');
+        if (fb) fb.style.cssText += ';display:flex!important';
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
