@@ -236,11 +236,48 @@
   .instr-icon { font-size: 22px; flex-shrink: 0; }
   .instr-text { font-size: 11px; color: var(--dim); line-height: 1.6; }
   .instr-text strong { color: rgba(255,255,255,.7); }
+
+  /* ── CUSTOM FULLSCREEN ── */
+  .fs-btn {
+    position: absolute;
+    bottom: 12px; right: 14px;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.22);
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 30;
+    transition: background .15s, border-color .15s, transform .15s;
+  }
+  .fs-btn:hover { background: rgba(0,0,0,.88); border-color: rgba(255,255,255,.5); transform: scale(1.08); }
+  .fs-icon { font-size: 14px; line-height: 1; }
+
+  /* When app is in fake-fullscreen mode */
+  .app-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9999 !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    background: #000 !important;
+  }
+  .app-fullscreen .page-header,
+  .app-fullscreen .info-bar,
+  .app-fullscreen .instructions { display: none !important; }
+  .app-fullscreen .video-shell {
+    width: 100vw !important;
+    height: 100vh !important;
+    aspect-ratio: unset !important;
+    border-radius: 0 !important;
+  }
+  .app-fullscreen .fs-btn { bottom: 16px; right: 16px; }
 </style>
 </head>
 <body>
 
-<div class="page">
+<div class="page" id="app-page">
 
   <div class="page-header">
     <div>
@@ -315,6 +352,11 @@
       </button>
     </div>
 
+    <!-- CUSTOM FULLSCREEN BUTTON -->
+    <button class="fs-btn" id="fs-btn" onclick="toggleFullscreen()" title="Toggle fullscreen">
+      <span class="fs-icon" id="fs-icon">⛶</span>
+    </button>
+
   </div>
 
   <div class="info-bar">
@@ -328,6 +370,7 @@
       <strong>Tap the 👥 button</strong> on the right side of the video to open team rosters.
       Switch between <strong>Varaždin</strong> and <strong>Dinamo</strong>, then tap any player to see their profile, match stats and season stats.
       Tap <strong>← Roster</strong> to go back. Close with <strong>✕</strong>.
+      Use the <strong>⛶ button</strong> (bottom right of video) to go fullscreen — overlays stay visible.
     </div>
   </div>
 
@@ -564,6 +607,30 @@ function closeAll() {
 
 // Init
 buildRoster('var');
+
+/* ── CUSTOM FULLSCREEN ── */
+var isFullscreen = false;
+function toggleFullscreen() {
+  var page = document.getElementById('app-page');
+  isFullscreen = !isFullscreen;
+  if (isFullscreen) {
+    page.classList.add('app-fullscreen');
+    document.getElementById('fs-icon').textContent = '✕';
+    document.getElementById('fs-btn').title = 'Exit fullscreen';
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+  } else {
+    page.classList.remove('app-fullscreen');
+    document.getElementById('fs-icon').textContent = '⛶';
+    document.getElementById('fs-btn').title = 'Toggle fullscreen';
+    document.body.style.overflow = '';
+  }
+}
+
+// Also allow Escape key to exit fullscreen
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && isFullscreen) toggleFullscreen();
+});
 </script>
 
 <!-- YouTube IFrame API -->
